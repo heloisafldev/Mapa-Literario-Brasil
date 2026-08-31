@@ -1,0 +1,129 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background: #f5f1e8;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 0 16px;
+}
+h1{
+    font-size: 40px;
+    margin: 24px 0;
+}
+
+#mapa {
+    width: 100%;
+    max-width: 900px;
+    margin: 30px auto;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* O SVG vinha com width/height fixos em px;
+   isso faz o mapa acompanhar a largura do container
+   e escalar proporcionalmente em qualquer tela. */
+#svg-map {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+#informacoes {
+    width: 100%;
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 25px;
+    border-radius: 20px;
+}
+
+#informacoes h2 {
+    margin-top: 0;
+}
+.janela {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    width: 280px;
+    max-width: 90vw;
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.conteudo-janela {
+    position: relative;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.55);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(8px);
+    color: white;
+}
+
+#fechar {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    border: none;
+    background: none;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.estado.lido path {
+    fill: #6aaa64 !important;
+}
+
+#progresso {
+    width: 100%;
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 25px;
+    border-radius: 20px;
+    text-align: center;
+}
+
+#progresso h2 {
+    margin-top: 0;
+}
+
+#quantidade-estados,
+#porcentagem {
+    font-weight: bold;
+    font-size: 24px;
+}
+
+/* ==========================================
+   RESPONSIVIDADE
+========================================== */
+
+@media (max-width: 600px) {
+
+    h1 {
+        font-size: 28px;
+        margin: 16px 0;
+    }
+
+    #mapa {
+        margin: 16px auto;
+    }
+
+    #progresso,
+    #informacoes {
+        padding: 16px;
+        margin: 16px auto;
+    }
+
+    #quantidade-estados,
+    #porcentagem {
+        font-size: 20px;
+    }
+
+    .conteudo-janela {
+        padding: 14px;
+    }
+}
