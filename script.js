@@ -39,6 +39,13 @@ const classificacao = document.querySelector("#classificacao");
 
 let ultimoEstado = null;
 
+function pintarEstado(estado, lido) {
+    const cor = lido ? "#075044" : "#4da996";
+    estado.querySelectorAll("path").forEach((path) => {
+        path.style.setProperty("fill", cor, "important");
+    });
+}
+
 estados.forEach((estado) => {
     estado.addEventListener("click", () => {
         const nome = estado.getAttribute("name");
@@ -61,16 +68,18 @@ estados.forEach((estado) => {
             return;
         }
 
-        // 2º clique: marca como lido.
+        // 2º clique: marca como explorado e muda a cor imediatamente.
         if (!estado.classList.contains("lido")) {
             estado.classList.add("lido");
+            pintarEstado(estado, true);
             atualizarProgresso();
             janela.style.display = "none";
             return;
         }
 
-        // 3º clique: desmarca.
+        // 3º clique: desmarca e volta à cor original.
         estado.classList.remove("lido");
+        pintarEstado(estado, false);
         atualizarProgresso();
         janela.style.display = "none";
         ultimoEstado = null;
@@ -86,7 +95,6 @@ function posicionarJanela(estado) {
         const telaW = window.innerWidth;
         const telaH = window.innerHeight;
 
-        // Tenta direita, esquerda, abaixo e acima.
         const posicoes = [
             { left: rect.right + margem, top: rect.top },
             { left: rect.left - largura - margem, top: rect.top },
@@ -95,22 +103,11 @@ function posicionarJanela(estado) {
         ];
 
         let escolhida = posicoes.find((pos) => {
-            const dentroDaTela =
-                pos.left >= margem &&
-                pos.top >= margem &&
-                pos.left + largura <= telaW - margem &&
-                pos.top + altura <= telaH - margem;
-
-            const naoSobrepoe =
-                pos.left + largura < rect.left ||
-                pos.left > rect.right ||
-                pos.top + altura < rect.top ||
-                pos.top > rect.bottom;
-
+            const dentroDaTela = pos.left >= margem && pos.top >= margem && pos.left + largura <= telaW - margem && pos.top + altura <= telaH - margem;
+            const naoSobrepoe = pos.left + largura < rect.left || pos.left > rect.right || pos.top + altura < rect.top || pos.top > rect.bottom;
             return dentroDaTela && naoSobrepoe;
         });
 
-        // Último recurso: mantém a janela dentro da tela.
         if (!escolhida) {
             escolhida = {
                 left: Math.max(margem, Math.min(rect.right + margem, telaW - largura - margem)),
@@ -130,40 +127,30 @@ function atualizarProgresso() {
 
     quantidadeEstados.textContent = quantidade;
     porcentagem.textContent = percentual.toFixed(1) + "%";
+    document.documentElement.style.setProperty("--percentual", percentual);
 
     if (quantidade === 0) {
-        classificacao.textContent =
-            "💭 Seu mapa literário está esperando por você. Escolha um estado e descubra novos autores!";
+        classificacao.textContent = "💭 Seu mapa literário está esperando por você. Escolha um estado e descubra novos autores!";
     } else if (quantidade <= 2) {
-        classificacao.textContent =
-            "🌱 Começando — todos temos que começar!";
+        classificacao.textContent = "🌱 Começando — todos temos que começar!";
     } else if (quantidade <= 5) {
-        classificacao.textContent =
-            "📖 Leitor em viagem — você já começou a desbravar o Brasil através da literatura!";
+        classificacao.textContent = "📖 Leitor em viagem — você já começou a desbravar o Brasil através da literatura!";
     } else if (quantidade <= 8) {
-        classificacao.textContent =
-            "🧭 Explorador literário — você já está conhecendo diferentes partes do Brasil!";
+        classificacao.textContent = "🧭 Explorador literário — você já está conhecendo diferentes partes do Brasil!";
     } else if (quantidade <= 11) {
-        classificacao.textContent =
-            "🇧🇷 Desbravando o Brasil — seu mapa literário está ficando cada vez mais completo!";
+        classificacao.textContent = "🇧🇷 Desbravando o Brasil — seu mapa literário está ficando cada vez mais completo!";
     } else if (quantidade <= 14) {
-        classificacao.textContent =
-            "📚 Leitor brasileiro — você já explorou muitos estados através da literatura!";
+        classificacao.textContent = "📚 Leitor brasileiro — você já explorou muitos estados através da literatura!";
     } else if (quantidade <= 17) {
-        classificacao.textContent =
-            "🌎 Grande explorador — você já percorreu uma boa parte do mapa literário brasileiro!";
+        classificacao.textContent = "🌎 Grande explorador — você já percorreu uma boa parte do mapa literário brasileiro!";
     } else if (quantidade <= 20) {
-        classificacao.textContent =
-            "🏆 Leitor avançado — seu mapa literário está impressionante!";
+        classificacao.textContent = "🏆 Leitor avançado — seu mapa literário está impressionante!";
     } else if (quantidade <= 23) {
-        classificacao.textContent =
-            "🔥 Quase completando o mapa — faltam poucos estados para você desbravar!";
+        classificacao.textContent = "🔥 Quase completando o mapa — faltam poucos estados para você desbravar!";
     } else if (quantidade <= 26) {
-        classificacao.textContent =
-            "👑 Mestre da literatura brasileira — falta muito pouco para completar seu mapa!";
+        classificacao.textContent = "👑 Mestre da literatura brasileira — falta muito pouco para completar seu mapa!";
     } else {
-        classificacao.textContent =
-            "🇧🇷👑 Desbravador literário do Brasil — você explorou autores de todos os 27 estados!";
+        classificacao.textContent = "🇧🇷👑 Desbravador literário do Brasil — você explorou autores de todos os 27 estados!";
     }
 }
 
@@ -173,13 +160,8 @@ fechar.addEventListener("click", () => {
 
 window.addEventListener("resize", () => {
     if (janela.style.display !== "none" && ultimoEstado) {
-        const estadoAtual = Array.from(estados).find(
-            (estado) => estado.getAttribute("name") === ultimoEstado
-        );
-
-        if (estadoAtual) {
-            posicionarJanela(estadoAtual);
-        }
+        const estadoAtual = Array.from(estados).find((estado) => estado.getAttribute("name") === ultimoEstado);
+        if (estadoAtual) posicionarJanela(estadoAtual);
     }
 });
 
