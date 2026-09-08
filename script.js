@@ -49,26 +49,20 @@ function pintarEstado(estado, lido) {
 estados.forEach((estado) => {
     estado.addEventListener("click", () => {
         const nome = estado.getAttribute("name");
-
-        // 1º clique: mostra os autores.
         if (ultimoEstado !== nome) {
             ultimoEstado = nome;
             nomeEstado.textContent = nome;
             listaAutores.innerHTML = "";
-
             const autores = autoresPorEstado[nome] || [];
             autores.forEach((autor) => {
                 const item = document.createElement("li");
                 item.textContent = autor;
                 listaAutores.appendChild(item);
             });
-
             janela.style.display = "flex";
             posicionarJanela(estado);
             return;
         }
-
-        // 2º clique: marca como explorado e muda a cor imediatamente.
         if (!estado.classList.contains("lido")) {
             estado.classList.add("lido");
             pintarEstado(estado, true);
@@ -76,8 +70,6 @@ estados.forEach((estado) => {
             janela.style.display = "none";
             return;
         }
-
-        // 3º clique: desmarca e volta à cor original.
         estado.classList.remove("lido");
         pintarEstado(estado, false);
         atualizarProgresso();
@@ -94,27 +86,23 @@ function posicionarJanela(estado) {
         const altura = janela.offsetHeight;
         const telaW = window.innerWidth;
         const telaH = window.innerHeight;
-
         const posicoes = [
             { left: rect.right + margem, top: rect.top },
             { left: rect.left - largura - margem, top: rect.top },
             { left: rect.left + (rect.width - largura) / 2, top: rect.bottom + margem },
             { left: rect.left + (rect.width - largura) / 2, top: rect.top - altura - margem }
         ];
-
         let escolhida = posicoes.find((pos) => {
             const dentroDaTela = pos.left >= margem && pos.top >= margem && pos.left + largura <= telaW - margem && pos.top + altura <= telaH - margem;
             const naoSobrepoe = pos.left + largura < rect.left || pos.left > rect.right || pos.top + altura < rect.top || pos.top > rect.bottom;
             return dentroDaTela && naoSobrepoe;
         });
-
         if (!escolhida) {
             escolhida = {
                 left: Math.max(margem, Math.min(rect.right + margem, telaW - largura - margem)),
                 top: Math.max(margem, Math.min(rect.top, telaH - altura - margem))
             };
         }
-
         janela.style.left = `${escolhida.left}px`;
         janela.style.top = `${escolhida.top}px`;
     }, 0);
@@ -124,11 +112,9 @@ function atualizarProgresso() {
     const estadosLidos = document.querySelectorAll(".estado.lido");
     const quantidade = estadosLidos.length;
     const percentual = (quantidade / 27) * 100;
-
     quantidadeEstados.textContent = quantidade;
     porcentagem.textContent = percentual.toFixed(1) + "%";
     document.documentElement.style.setProperty("--percentual", percentual);
-
     if (quantidade === 0) {
         classificacao.textContent = "💭 Seu mapa literário está esperando por você. Escolha um estado e descubra novos autores!";
     } else if (quantidade <= 2) {
@@ -166,3 +152,24 @@ window.addEventListener("resize", () => {
 });
 
 atualizarProgresso();
+
+// Card fixo de instruções e legenda, criado antes do mapa.
+const mapa = document.querySelector("#mapa");
+const svgMapa = document.querySelector("#svg-map");
+if (mapa && svgMapa && !document.querySelector(".card-instrucoes")) {
+    const card = document.createElement("section");
+    card.className = "card-instrucoes";
+    card.innerHTML = `
+        <div class="area-instrucoes">
+            <div class="icone-clique" aria-hidden="true"><span></span></div>
+            <div class="texto-instrucoes">
+                <p>Clique em um estado para conhecer seus autores.</p>
+                <p>Clique novamente para marcar como explorado.</p>
+            </div>
+        </div>
+        <div class="area-legenda" aria-label="Legenda das cores">
+            <div class="item-legenda"><span class="bolinha-legenda nao-explorado"></span><span>Ainda não explorado</span></div>
+            <div class="item-legenda"><span class="bolinha-legenda explorado"></span><span>Já explorei</span></div>
+        </div>`;
+    mapa.insertBefore(card, svgMapa);
+}
