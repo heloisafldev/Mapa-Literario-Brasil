@@ -173,3 +173,133 @@ if (mapa && svgMapa && !document.querySelector(".card-instrucoes")) {
         </div>`;
     mapa.insertBefore(card, svgMapa);
 }
+
+// Botão e compartilhamento do resultado em formato vertical para Stories.
+function carregarHtml2Canvas() {
+    return new Promise((resolve, reject) => {
+        if (window.html2canvas) {
+            resolve(window.html2canvas);
+            return;
+        }
+        const script = document.createElement("script");
+        script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+        script.onload = () => resolve(window.html2canvas);
+        script.onerror = () => reject(new Error("Não foi possível carregar o gerador de imagem."));
+        document.head.appendChild(script);
+    });
+}
+
+function obterClassificacaoSemEmoji(texto) {
+    return texto.replace(/^[^A-Za-zÀ-ÿ]+/u, "").trim();
+}
+
+function criarCardCompartilhamento() {
+    const estadosLidos = Array.from(document.querySelectorAll(".estado.lido"));
+    const quantidade = estadosLidos.length;
+    const percentual = ((quantidade / 27) * 100).toFixed(1).replace(".", ",");
+    const mensagem = obterClassificacaoSemEmoji(classificacao.textContent);
+
+    const card = document.createElement("div");
+    card.id = "card-compartilhar";
+    card.innerHTML = `
+        <div class="share-decor share-decor-top"></div>
+        <div class="share-cabecalho">
+            <div class="share-titulo">Brasil Literário</div>
+            <div class="share-subtitulo">Minha jornada pela literatura brasileira</div>
+        </div>
+        <div class="share-mapa"></div>
+        <div class="share-legenda">
+            <div><span class="share-bolinha share-nao"></span>Ainda não explorado</div>
+            <div><span class="share-bolinha share-sim"></span>Já explorei</div>
+        </div>
+        <div class="share-resultado">
+            <div class="share-circulo"><strong>${percentual}%</strong><span>do Brasil explorado</span></div>
+            <div class="share-dados"><strong>${quantidade} / 27</strong><span>estados explorados</span></div>
+        </div>
+        <div class="share-classificacao">
+            <strong>🌿 ${mensagem || "Minha jornada literária"}</strong>
+            <span>Desbravando o Brasil através de seus autores.</span>
+        </div>
+        <div class="share-rodape">BRASIL LITERÁRIO</div>
+        <div class="share-decor share-decor-bottom"></div>`;
+
+    const wrapper = card.querySelector(".share-mapa");
+    const mapaClone = svgMapa.cloneNode(true);
+    mapaClone.removeAttribute("style");
+    mapaClone.setAttribute("width", "850");
+    mapaClone.setAttribute("height", "870");
+    mapaClone.style.width = "850px";
+    mapaClone.style.height = "auto";
+    mapaClone.style.display = "block";
+    mapaClone.querySelectorAll(".estado").forEach((estado) => {
+        const lido = estado.classList.contains("lido");
+        estado.querySelectorAll("path,.circle").forEach((elemento) => {
+            elemento.style.setProperty("fill", lido ? "#075044" : "#4da996", "important");
+        });
+        estado.querySelectorAll("text").forEach((texto) => texto.style.fill = "#ffffff");
+    });
+    wrapper.appendChild(mapaClone);
+
+    document.body.appendChild(card);
+    return card;
+}
+
+async function compartilharResultado() {
+    const botao = document.querySelector("#botao-compartilhar");
+    const textoOriginal = botao.innerHTML;
+    botao.disabled = true;
+    botao.innerHTML = "Preparando meu resultado…";
+
+    try {
+        const html2canvas = await carregarHtml2Canvas();
+        await document.fonts.ready;
+        const card = criarCardCompartilhamento();
+        const canvas = await html2canvas(card, {
+            width: 1080,
+            height: 1920,
+            scale: 1,
+            backgroundColor: "#f7f3e9",
+            useCORS: true,
+            logging: false
+        });
+
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+        card.remove();
+        if (!blob) throw new Error("Não foi possível gerar a imagem.");
+
+        const arquivo = new File([blob], "meu-brasil-literario.png", { type: "image/png" });
+        const dados = { files: [arquivo], title: "Meu Brasil Literário", text: "Minha jornada pela literatura brasileira 📚🇧🇷" };
+
+        if (navigator.share && (!navigator.canShare || navigator.canShare(dados))) {
+            await navigator.share(dados);
+        } else {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "meu-brasil-literario.png";
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            alert("A imagem foi salva. Agora você pode publicar no Instagram Stories.");
+        }
+    } catch (erro) {
+        const card = document.querySelector("#card-compartilhar");
+        if (card) card.remove();
+        if (erro.name !== "AbortError") {
+            console.error(erro);
+            alert("Não consegui gerar o compartilhamento agora. Tente novamente.");
+        }
+    } finally {
+        botao.disabled = false;
+        botao.innerHTML = textoOriginal;
+    }
+}
+
+const progresso = document.querySelector("#progresso");
+if (progresso && !document.querySelector("#botao-compartilhar")) {
+    const botaoCompartilhar = document.createElement("button");
+    botaoCompartilhar.id = "botao-compartilhar";
+    botaoCompartilhar.type = "button";
+    botaoCompartilhar.innerHTML = "↗ Compartilhar meu resultado";
+    botaoCompartilhar.addEventListener("click", compartilharResultado);
+    progresso.parentNode.insertBefore(botaoCompartilhar, progresso.nextSibling);
+}
